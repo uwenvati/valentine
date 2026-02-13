@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will You Be My Valentine?</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff4d6d;
+            --secondary: #ff758f;
+            --accent: #ffb3c1;
+            --bg: #fff0f3;
+            --text: #590d22;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(255, 77, 109, 0.2);
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(255, 179, 193, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(255, 179, 193, 0.4) 0%, transparent 40%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        /* Puzzle Grid */
+        #puzzle-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 25px;
+            position: relative;
+            aspect-ratio: 1/1;
+        }
+
+        @media (max-width: 400px) {
+            #puzzle-board {
+                width: 100%;
+                height: auto;
+            }
+        }
+
+        .tile {
+            width: 100%;
+            height: 100%;
+            background-size: 300px 300px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.2s ease-out, box-shadow 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tile:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(255, 77, 109, 0.3);
+            z-index: 2;
+        }
+
+        .tile.empty {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.05);
+            cursor: default;
+        }
+
+        .tile.empty:hover {
+            transform: none;
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 77, 109, 0.6);
+            background: #ff385c;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-hint {
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: none;
+        }
+
+        .btn-hint:hover {
+            background: var(--bg);
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.2);
+        }
+
+        /* Modal / Success State */
+        #success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 240, 243, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            max-width: 450px;
+            transform: translateY(20px);
+            animation: slideUp 0.5s 0.2s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .full-image {
+            width: 250px;
+            height: 250px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 5px solid white;
+            object-fit: cover;
+        }
+
+        .proposal-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 30px;
+        }
+
+        .proposal-btns {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .btn-yes {
+            font-size: 1.2rem;
+            padding: 15px 40px;
+        }
+
+        .btn-no {
+            background: #ccc;
+            color: #666;
+            box-shadow: none;
+            position: relative;
+        }
+
+        /* Decorations */
+        .hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .heart {
+            position: absolute;
+            color: var(--secondary);
+            font-size: 20px;
+            animation: float 4s infinite linear;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 150;
+            display: none;
+        }
+
+        /* Final Message */
+        #final-celebration {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .celebration-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            color: var(--primary);
+            animation: heartBeat 1.5s infinite;
+        }
+
+        @keyframes heartBeat {
+            0% {
+                transform: scale(1);
+            }
+
+            14% {
+                transform: scale(1.1);
+            }
+
+            28% {
+                transform: scale(1);
+            }
+
+            42% {
+                transform: scale(1.1);
+            }
+
+            70% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hearts" id="heart-bg"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="container" id="game-container">
+        <h1>Happy Valentine's Day!</h1>
+        <p class="subtitle">Complete the puzzle to reveal a special message...</p>
+
+        <div id="puzzle-board">
+            <!-- Tiles will be generated by JS -->
+        </div>
+
+        <div class="controls">
+            <button id="shuffle-btn">New Game</button>
+            <button id="hint-btn" class="btn-hint">Hint</button>
+        </div>
+    </div>
+
+    <div id="success-modal">
+        <div class="modal-content" id="proposal-content">
+            <img src="hint.jpg" alt="Our Photo" class="full-image">
+            <div class="proposal-text">Will you be my Valentine?</div>
+            <div class="proposal-btns">
+                <button class="btn-yes" id="yes-btn">YES! ❤️</button>
+                <button class="btn-no" id="no-btn">Maybe?</button>
+            </div>
+        </div>
+
+        <div id="final-celebration">
+            <div class="celebration-text">I love you! ❤️</div>
+            <p style="margin-top: 20px; font-size: 1.1rem;">See you on Feb 14th!</p>
+        </div>
+    </div>
+
+    <script>
+        const board = document.getElementById('puzzle-board');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const successModal = document.getElementById('success-modal');
+        const proposalContent = document.getElementById('proposal-content');
+        const finalCelebration = document.getElementById('final-celebration');
+        const yesBtn = document.getElementById('yes-btn');
+        const noBtn = document.getElementById('no-btn');
+        const confettiCanvas = document.getElementById('confetti-canvas');
+
+        let tiles = [];
+        let emptyIndex = 8;
+        let isStarted = false;
+        let originalOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+        let currentOrder = [...originalOrder];
+
+        const IMAGE_URL = 'puzzle.jpg';
+        const HINT_URL = 'hint.jpg';
+        const GRID_SIZE = 3;
+
+        // Initialize Board
+        function initBoard() {
+            board.innerHTML = '';
+            tiles = [];
+            for (let i = 0; i < 9; i++) {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                if (i === 8) {
+                    tile.classList.add('empty');
+                } else {
+                    tile.style.backgroundImage = `url(${IMAGE_URL})`;
+                    // Calculate position
+                    const row = Math.floor(i / GRID_SIZE);
+                    const col = i % GRID_SIZE;
+                    tile.style.backgroundPosition = `${-col * 100}px ${-row * 100}px`;
+                }
+                tile.addEventListener('click', () => handleTileClick(i));
+                tiles.push(tile);
+            }
+            renderBoard();
+        }
+
+        function renderBoard() {
+            board.innerHTML = '';
+            currentOrder.forEach((pos, index) => {
+                const tile = tiles[pos];
+                board.appendChild(tile);
+                if (pos === 8) emptyIndex = index;
+            });
+        }
+
+        function handleTileClick(pos) {
+            const currentIndex = currentOrder.indexOf(pos);
+            if (canMove(currentIndex)) {
+                swapTiles(currentIndex, emptyIndex);
+                checkWin();
+            }
+        }
+
+        function canMove(index) {
+            const row = Math.floor(index / GRID_SIZE);
+            const col = index % GRID_SIZE;
+            const emptyRow = Math.floor(emptyIndex / GRID_SIZE);
+            const emptyCol = emptyIndex % GRID_SIZE;
+
+            const rowDiff = Math.abs(row - emptyRow);
+            const colDiff = Math.abs(col - emptyCol);
+
+            return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+        }
+
+        function swapTiles(idx1, idx2) {
+            const temp = currentOrder[idx1];
+            currentOrder[idx1] = currentOrder[idx2];
+            currentOrder[idx2] = temp;
+            renderBoard();
+        }
+
+        function shuffle() {
+            isStarted = false;
+            // Reset to identity
+            currentOrder = [...originalOrder];
+
+            // Perform valid moves to shuffle (ensures solvability)
+            let shuffleMoves = 100;
+            while (shuffleMoves > 0) {
+                const neighbors = getNeighbors(emptyIndex);
+                const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                swapTiles(randomNeighbor, emptyIndex);
+                shuffleMoves--;
+            }
+
+            // If by chance it's solved, shuffle once more
+            if (JSON.stringify(currentOrder) === JSON.stringify(originalOrder)) {
+                shuffle();
+                return;
+            }
+
+            isStarted = true;
+        }
+
+        function getNeighbors(index) {
+            const row = Math.floor(index / GRID_SIZE);
+            const col = index % GRID_SIZE;
+            const neighbors = [];
+
+            if (row > 0) neighbors.push(index - GRID_SIZE);
+            if (row < GRID_SIZE - 1) neighbors.push(index + GRID_SIZE);
+            if (col > 0) neighbors.push(index - 1);
+            if (col < GRID_SIZE - 1) neighbors.push(index + 1);
+
+            return neighbors;
+        }
+
+        function checkWin() {
+            if (JSON.stringify(currentOrder) === JSON.stringify(originalOrder)) {
+                setTimeout(showSuccess, 500);
+            }
+        }
+
+        function showSuccess() {
+            successModal.style.display = 'flex';
+            proposalContent.style.display = 'block';
+            finalCelebration.style.display = 'none';
+        }
+
+        // Hint Button logic
+        hintBtn.addEventListener('mousedown', () => {
+            board.style.backgroundImage = `url(${HINT_URL})`;
+            board.style.backgroundSize = 'contain';
+            board.style.backgroundPosition = 'center';
+            board.style.backgroundRepeat = 'no-repeat';
+            tiles.forEach(t => t.style.opacity = '0');
+        });
+
+        const hideHint = () => {
+            board.style.backgroundImage = 'none';
+            tiles.forEach(t => t.style.opacity = '1');
+            tiles[8].classList.add('empty');
+            tiles[8].style.backgroundImage = 'none';
+        };
+
+        hintBtn.addEventListener('mouseup', hideHint);
+        hintBtn.addEventListener('mouseleave', hideHint);
+        hintBtn.addEventListener('touchend', hideHint);
+        hintBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            hintBtn.dispatchEvent(new Event('mousedown'));
+        });
+
+        // Valentine Flow
+        yesBtn.addEventListener('click', () => {
+            proposalContent.style.display = 'none';
+            finalCelebration.style.display = 'flex';
+            startConfetti();
+        });
+
+        noBtn.addEventListener('mouseover', () => {
+            // Move the button away
+            const x = Math.random() * (window.innerWidth - 100);
+            const y = Math.random() * (window.innerHeight - 50);
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+        });
+
+        noBtn.addEventListener('click', () => {
+            alert("Nice try! Choose Yes ❤️");
+        });
+
+        // Background Decoration
+        function createHearts() {
+            const container = document.getElementById('heart-bg');
+            const heartIcons = ['❤️', '💖', '💗', '💓', '💕'];
+
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart';
+                    heart.innerHTML = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+                    heart.style.left = Math.random() * 100 + 'vw';
+                    heart.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                    heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                    container.appendChild(heart);
+
+                    heart.addEventListener('animationend', () => {
+                        heart.remove();
+                        createSingleHeart();
+                    });
+                }, i * 300);
+            }
+        }
+
+        function createSingleHeart() {
+            const container = document.getElementById('heart-bg');
+            const heartIcons = ['❤️', '💖', '💗', '💓', '💕'];
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerHTML = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
+            container.appendChild(heart);
+            heart.addEventListener('animationend', () => heart.remove());
+        }
+
+        // Simple Confetti
+        function startConfetti() {
+            confettiCanvas.style.display = 'block';
+            const ctx = confettiCanvas.getContext('2d');
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+
+            const particles = [];
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * confettiCanvas.width,
+                    y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+                    size: Math.random() * 10 + 5,
+                    color: `hsl(${Math.random() * 30 + 330}, 100%, 70%)`,
+                    speed: Math.random() * 3 + 2,
+                    angle: Math.random() * 360
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                particles.forEach(p => {
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    p.y += p.speed;
+                    p.angle += 1;
+                    if (p.y > confettiCanvas.height) p.y = -10;
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        shuffleBtn.addEventListener('click', shuffle);
+
+        window.onload = () => {
+            initBoard();
+            createHearts();
+            setTimeout(shuffle, 1000); // Auto-shuffle after 1s
+        };
+    </script>
+</body>
+
+</html>
