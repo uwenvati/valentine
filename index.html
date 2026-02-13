@@ -359,7 +359,7 @@
 
         <div class="controls">
             <button id="shuffle-btn">New Game</button>
-            <button id="hint-btn" class="btn-hint">Hint</button>
+            <button id="hint-btn" class="btn-hint">Hint(try not to use hehe)</button>
         </div>
     </div>
 
@@ -572,6 +572,7 @@
             if (!isStarted || JSON.stringify(currentOrder) === JSON.stringify(originalOrder)) return;
 
             hintBtn.disabled = true;
+            const originalText = hintBtn.textContent;
             hintBtn.textContent = "Thinking...";
 
             const bestTileIdx = await getNextMove();
@@ -588,11 +589,11 @@
                     tileElement.classList.remove('hint-highlight');
                     handleTileClick(tileValue);
                     hintBtn.disabled = false;
-                    hintBtn.textContent = "Hint";
+                    hintBtn.textContent = originalText;
                 }, 800);
             } else {
                 hintBtn.disabled = false;
-                hintBtn.textContent = "Hint";
+                hintBtn.textContent = originalText;
             }
         }
 
